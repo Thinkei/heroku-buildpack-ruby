@@ -107,6 +107,7 @@ WARNING
         create_database_yml
         install_binaries
         run_assets_precompile_rake_task
+        run_load_assets_rake_task
       end
       best_practice_warnings
       super
@@ -859,6 +860,20 @@ params = CGI.parse(uri.query || "")
         puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
       else
         precompile_fail(precompile.output)
+      end
+    end
+  end
+
+  def run_load_assets_rake_task
+    instrument 'ruby.run_load_assets_rake_task' do
+
+      precompile = rake.task("assets:load_asset_archive_from_s3")
+      return true unless precompile.is_defined?
+
+      topic "Loading assets from S3 archive file"
+      precompile.invoke(env: rake_env)
+      if precompile.success?
+        puts "Loading assets completed (#{"%.2f" % precompile.time}s)"
       end
     end
   end
